@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영화 추천 시스템</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+             width: 70%;
+            margin: auto;
+            overflow: hidden;
+             margin-top: 20px;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        form div {
+            margin-bottom: 10px;
+        }
+
+        form label {
+            display: block;
+            font-weight: bold;
+        }
+
+        form input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        form select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #555;
+        }
+
+        #result {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px; /* 수정: 표 위 간격 설정 */
+            margin-bottom: 50px; /* 수정: 표 아래 간격 설정 */
+        }
+
+        th, td {
+            padding: 20px;
+             text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>영화 추천 시스템</h1>
+        <form id="recommendForm">
+            <div>
+                <label>성별:</label>
+                <input type="radio" name="gender" value="M" required> 남자
+                <input type="radio" name="gender" value="F" required> 여자
+            </div>
+            <div>
+                <label>연령대:</label>
+                <input type="radio" name="age_group" value="10대 미만" required> 10대 미만
+                <input type="radio" name="age_group" value="10대" required> 10대
+                <input type="radio" name="age_group" value="20대" required> 20대
+                <input type="radio" name="age_group" value="30대" required> 30대
+                <input type="radio" name="age_group" value="40대" required> 40대
+                <input type="radio" name="age_group" value="50대 이상" required> 50대 이상
+            </div>
+            <div>
+                <label>영화 선택:</label>
+                <select id="movieSelect" name="selected_movie" required>
+                    <option value="">영화를 선택하세요</option>
+                </select>
+            </div>
+            <button type="submit">추천받기</button>
+        </form>
+        <div id="result">
+            <h2>추천 결과</h2>
+            <table id="recommendationTable">
+                <thead>
+                    <tr>
+                        <th>선택한 영화와의 유사도</th>
+                        <th>추천된 영화</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        // 영화 목록 불러오기
+        $.ajax({
+            url: '/get_movies',
+            method: 'GET',
+            success: function(response) {
+                var select = $('#movieSelect');
+                $.each(response, function(index, movie) {
+                    select.append('<option value="' + movie + '">' + movie + '</option>');
+                });
+            }
+        });
+
+        $('#recommendForm').on('submit', function(event) {
+            event.preventDefault();
+
+            $.ajax({
+                url: '/recommend',
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    // 결과를 테이블에 추가
+                    var recommendationTable = $('#recommendationTable tbody');
+                    recommendationTable.empty();
+                    $.each(response['유사한 영화']['영화제목'], function(index, movie) {
+                        var similarMovie = response['유사한 영화']['영화제목'][index];
+                        var recommendedMovie = response['top_movies']['영화제목'][index];
+                        recommendationTable.append('<tr><td>' + similarMovie + '</td><td>' + recommendedMovie + '</td></tr>');
+                    });
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>
